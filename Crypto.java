@@ -1,23 +1,21 @@
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 
 public class Crypto {
     private static final Scanner SCANNER = new Scanner(System.in);
-    private static final String ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZабвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ.,!?:;%-0123456789 ";
+    private static final String ALPHABET = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ.,!?:;%-0123456789 ";
 
     public static void main(String[] args) {
         run();
     }
 
     private static void run() {
-        int option; //пункт меню для выбора варианта работы программы
+        int option;
         System.out.println("Привет!");
-        while(true) {
+        while (true) {
             System.out.println("Выберите, пожалуйста, вариант работы программы(1 - 5): ");
             System.out.println("1. Зашифровать файл");
             System.out.println("2. Расшифровать файл");
@@ -39,11 +37,12 @@ public class Crypto {
 
     private static void statAnalyze() {
         System.out.println("Введите путь к файлу для анализа: ");
+        SCANNER.nextLine();
         String filePath = SCANNER.nextLine();
+        String decryptedText = getFileContent(filePath);
         System.out.println("Введите путь к файлу для сбора статистики: ");
         String statFilePath = SCANNER.nextLine();
-        String decryptedText = getFileContent(filePath);
-        String textForStats = getFileContent(statFilePath);
+        String textForStats = getFileContent1(statFilePath);
         HashMap<Character, Integer> decryptedTextStats = getCharStats(decryptedText);
         HashMap<Character, Integer> generalStats = getCharStats(textForStats);
         HashMap<Character, Character> charStats = getCharStats(decryptedTextStats, generalStats);
@@ -52,7 +51,7 @@ public class Crypto {
             char decChar = charStats.get(decryptedText.charAt(i));
             result.append(decChar);
         }
-        System.out.println(result.toString());
+        writeContentToFile(result.toString(), filePath, "_analysed");
     }
 
     private static HashMap<Character, Character> getCharStats(HashMap<Character, Integer> decryptedTextStats
@@ -105,6 +104,7 @@ public class Crypto {
 
     private static void brutForce() {
         System.out.println("Введите путь к файлу для брутфорса: ");
+        SCANNER.nextLine();
         String filePath = SCANNER.nextLine();
         String fileContent = getFileContent(filePath);
         for (int i = 0; i < ALPHABET.length(); i++) {
@@ -112,7 +112,7 @@ public class Crypto {
             boolean isValid = isValidText(decryptedText);
             if (isValid) {
                 System.out.println("Ключ: " + i);
-                writeContentToFile(decryptedText, filePath, "-bruteforce");
+                writeContentToFile(decryptedText, filePath, "_bruteforce");
                 break;
             }
         }
@@ -120,7 +120,7 @@ public class Crypto {
 
     private static boolean isValidText(String text) {
         String[] strings = text.split(" ");
-        for (String string: strings) {
+        for (String string : strings) {
             if (string.length() > 24) {
                 return false;
             }
@@ -161,7 +161,7 @@ public class Crypto {
         for (int i = 0; i < text.length(); i++) {
             char ch = text.charAt(i);
             int index = ALPHABET.indexOf(ch);
-            int newIndex = index - key;
+            int newIndex = index - key + ALPHABET.length();
             newIndex = newIndex % ALPHABET.length();
             char decChar = ALPHABET.charAt(newIndex);
             stringBuilder.append(decChar);
@@ -172,29 +172,31 @@ public class Crypto {
     private static void decrypt() {
         System.out.println("Начало расшифровки...");
         System.out.println("Введите путь к файлу: ");
+        SCANNER.nextLine();
         String filesPath = SCANNER.nextLine();
         String fileContent = getFileContent(filesPath);
         System.out.println("Введите ключ шифрования: ");
         int key = SCANNER.nextInt();
         String decryptedText = decryptText(fileContent, key);
-        writeContentToFile(decryptedText, filesPath, "-decrypted");
+        writeContentToFile(decryptedText, filesPath, "_decrypted");
     }
 
     private static void encrypt() {
         System.out.println("Начало шифрования...");
         System.out.println("Введите путь к файлу: ");
+        SCANNER.nextLine();
         String filesPath = SCANNER.nextLine();
         String fileContent = getFileContent(filesPath);
         System.out.println("Введите ключ шифрования: ");
         int key = SCANNER.nextInt();
         String encryptedText = encryptText(fileContent, key);
-        writeContentToFile(encryptedText, filesPath, "-encrypted");
+        writeContentToFile(encryptedText, filesPath, "_encrypted");
     }
 
     private static void writeContentToFile(String content, String prevFilePath, String suffix) {
         int dot = prevFilePath.lastIndexOf(".");
         String fileBeforeDot = prevFilePath.substring(0, dot);
-        String fileAfterDot = prevFilePath.substring(0, dot);
+        String fileAfterDot = prevFilePath.substring(dot);
         String newFileName = fileBeforeDot + suffix + fileAfterDot;
         try {
             Files.writeString(Path.of(newFileName), content);
@@ -207,7 +209,18 @@ public class Crypto {
         Path path = Path.of(filesPath);
         try {
             byte[] bytes = Files.readAllBytes(path);
-            return new String(bytes);
+            return new String(bytes, "UTF-8");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static String getFileContent1(String filesPath) {
+        Path path = Path.of(filesPath);
+        try {
+            byte[] bytes = Files.readAllBytes(path);
+            return new String(bytes, "windows-1251");
         } catch (IOException e) {
             e.printStackTrace();
             return null;
