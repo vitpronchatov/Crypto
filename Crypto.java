@@ -6,7 +6,7 @@ import java.util.*;
 
 public class Crypto {
     private static final Scanner SCANNER = new Scanner(System.in);
-    private static final String ALPHABET = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ.,!?:;%-0123456789 ";
+    private static final String ALPHABET = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ.,!?:;%-0123456789[]'' ";
 
     public static void main(String[] args) {
         run();
@@ -42,7 +42,7 @@ public class Crypto {
         String decryptedText = getFileContent(filePath);
         System.out.println("Введите путь к файлу для сбора статистики: ");
         String statFilePath = SCANNER.nextLine();
-        String textForStats = getFileContent1(statFilePath);
+        String textForStats = getFileContent(statFilePath);
         HashMap<Character, Integer> decryptedTextStats = getCharStats(decryptedText);
         HashMap<Character, Integer> generalStats = getCharStats(textForStats);
         HashMap<Character, Character> charStats = getCharStats(decryptedTextStats, generalStats);
@@ -83,21 +83,21 @@ public class Crypto {
     private static HashMap<Character, Integer> getCharStats(String text) {
         HashMap<Character, Integer> absResult = new HashMap<>();
         HashMap<Character, Integer> result = new HashMap<>();
+        //int size = 0;
         for (int i = 0; i < text.length(); i++) {
             char ch = text.charAt(i);
-            Integer integer = absResult.get(ch);
-            if (integer == null) {
-                result.put(ch, 1);
+            if (absResult.containsKey(ch)) {
+                result.put(ch, result.get(ch) + 1);
             } else {
-                integer++;
-                result.put(ch, integer);
+                result.put(ch, 1);
+                absResult.put(ch, 1);
             }
+            //size++;
         }
-        for (Character character : absResult.keySet()) {
-            Integer integer = absResult.get(character);
-            int entries = integer * 10_000 / text.length();
-            result.put(character, entries);
-        }
+//        for (Map.Entry<Character, Integer> entry : result.entrySet()) {
+//            int entries = entry.getValue() * 100 / size;
+//            result.put(entry.getKey(), entries);
+//        }
 
         return result;
     }
@@ -210,17 +210,6 @@ public class Crypto {
         try {
             byte[] bytes = Files.readAllBytes(path);
             return new String(bytes, "UTF-8");
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private static String getFileContent1(String filesPath) {
-        Path path = Path.of(filesPath);
-        try {
-            byte[] bytes = Files.readAllBytes(path);
-            return new String(bytes, "windows-1251");
         } catch (IOException e) {
             e.printStackTrace();
             return null;
