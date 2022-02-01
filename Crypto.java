@@ -83,7 +83,6 @@ public class Crypto {
     private static HashMap<Character, Integer> getCharStats(String text) {
         HashMap<Character, Integer> absResult = new HashMap<>();
         HashMap<Character, Integer> result = new HashMap<>();
-        //int size = 0;
         for (int i = 0; i < text.length(); i++) {
             char ch = text.charAt(i);
             if (absResult.containsKey(ch)) {
@@ -92,13 +91,7 @@ public class Crypto {
                 result.put(ch, 1);
                 absResult.put(ch, 1);
             }
-            //size++;
         }
-//        for (Map.Entry<Character, Integer> entry : result.entrySet()) {
-//            int entries = entry.getValue() * 100 / size;
-//            result.put(entry.getKey(), entries);
-//        }
-
         return result;
     }
 
